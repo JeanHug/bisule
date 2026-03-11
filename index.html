@@ -1,0 +1,1108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bisule — API Navigateur Web</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                         Roboto, sans-serif;
+            background: #fafafa;
+            color: #1a1a1a;
+            min-height: 100vh;
+        }
+
+        /* ── Header ── */
+        .header {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: #111827;
+            letter-spacing: -0.5px;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .status.online {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status.offline {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        .status.online .status-dot {
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+
+        .status.offline .status-dot {
+            background: #ef4444;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* ── Config bar ── */
+        .config-bar {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .config-label {
+            font-size: 12px;
+            color: #6b7280;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .config-input {
+            padding: 6px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 13px;
+            outline: none;
+            font-family: monospace;
+            transition: border-color 0.2s;
+        }
+
+        .config-input:focus {
+            border-color: #3b82f6;
+        }
+
+        .config-input.server {
+            width: 320px;
+        }
+
+        .config-btn {
+            padding: 6px 14px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .config-btn:hover {
+            background: #2563eb;
+        }
+
+        .config-btn.save {
+            background: #10b981;
+        }
+
+        .config-btn.save:hover {
+            background: #059669;
+        }
+
+        /* ── URL bar ── */
+        .url-bar {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .url-input {
+            flex: 1;
+            padding: 8px 14px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            font-family: monospace;
+            transition: border-color 0.2s;
+        }
+
+        .url-input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        }
+
+        .mode-select {
+            padding: 8px 12px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 13px;
+            outline: none;
+            background: white;
+            cursor: pointer;
+        }
+
+        .go-btn {
+            padding: 8px 20px;
+            background: #111827;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .go-btn:hover {
+            background: #374151;
+        }
+
+        .go-btn:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        /* ── Actions bar ── */
+        .actions-bar {
+            background: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 8px 24px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 5px 12px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+            color: #374151;
+        }
+
+        .action-btn:hover {
+            background: #f3f4f6;
+            border-color: #d1d5db;
+        }
+
+        .action-sep {
+            width: 1px;
+            height: 20px;
+            background: #e5e7eb;
+            margin: 0 4px;
+        }
+
+        .action-input {
+            padding: 4px 8px;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            font-size: 12px;
+            width: 60px;
+            outline: none;
+            font-family: monospace;
+        }
+
+        /* ── Result ── */
+        .result-area {
+            padding: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .result-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .result-badge {
+            padding: 3px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .result-badge.success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .result-badge.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .result-badge.time {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+
+        .result-badge.size {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        /* ── Image result ── */
+        .result-image-container {
+            position: relative;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+            cursor: crosshair;
+        }
+
+        .result-image {
+            width: 100%;
+            display: block;
+        }
+
+        .click-dot {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: rgba(239, 68, 68, 0.8);
+            border: 2px solid white;
+            border-radius: 50%;
+            pointer-events: none;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            animation: clickPulse 0.6s ease-out;
+        }
+
+        @keyframes clickPulse {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(2.5); opacity: 0; }
+        }
+
+        .coord-tooltip {
+            position: absolute;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: monospace;
+            pointer-events: none;
+            z-index: 10;
+            display: none;
+        }
+
+        /* ── Code result ── */
+        .result-code {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 12px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            overflow: auto;
+            max-height: 600px;
+            white-space: pre-wrap;
+            word-break: break-all;
+            border: 1px solid #333;
+        }
+
+        /* ── Loading ── */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #e5e7eb;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        /* ── Empty state ── */
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #9ca3af;
+        }
+
+        .empty-state h2 {
+            font-size: 20px;
+            margin-bottom: 8px;
+            color: #6b7280;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            max-width: 500px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .empty-state code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #374151;
+        }
+
+        /* ── Error ── */
+        .error-box {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 12px;
+            padding: 20px;
+            color: #991b1b;
+            font-size: 14px;
+        }
+
+        /* ── History ── */
+        .history-bar {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 6px 24px;
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+        }
+
+        .history-item {
+            padding: 3px 10px;
+            background: #f3f4f6;
+            border: none;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #6b7280;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.15s;
+            font-family: monospace;
+        }
+
+        .history-item:hover {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .config-input.server { width: 200px; }
+            .url-input { font-size: 12px; }
+            .header { padding: 12px 16px; }
+            .config-bar, .url-bar, .actions-bar { padding: 8px 16px; }
+            .result-area { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <div class="header-left">
+            <span class="logo">Bisule</span>
+            <span class="status offline" id="statusBadge">
+                <span class="status-dot"></span>
+                <span id="statusText">Non connecté</span>
+            </span>
+        </div>
+    </div>
+
+    <!-- Config bar -->
+    <div class="config-bar">
+        <span class="config-label">Serveur Colab :</span>
+        <input type="text" class="config-input server" id="serverUrl"
+               placeholder="https://xxxxx.ngrok-free.app"
+               value="">
+        <button class="config-btn" onclick="testConnection()">
+            Tester</button>
+        <button class="config-btn save" onclick="saveServer()">
+            Sauvegarder</button>
+        <span id="configStatus" style="font-size:12px;color:#6b7280;">
+        </span>
+    </div>
+
+    <!-- URL bar -->
+    <div class="url-bar">
+        <input type="text" class="url-input" id="urlInput"
+               placeholder="Entrez une URL... (ex: google.com)"
+               onkeydown="if(event.key==='Enter')go()">
+        <select class="mode-select" id="modeSelect">
+            <option value="image">📸 Image</option>
+            <option value="code">📄 Code</option>
+        </select>
+        <button class="go-btn" id="goBtn" onclick="go()">
+            Charger</button>
+    </div>
+
+    <!-- Actions bar -->
+    <div class="actions-bar">
+        <button class="action-btn" onclick="clickAction()"
+                title="Cliquer sur la page">
+            🖱️ Cliquer</button>
+        <span class="config-label">X:</span>
+        <input type="number" class="action-input" id="clickX"
+               value="640" min="0" max="1920">
+        <span class="config-label">Y:</span>
+        <input type="number" class="action-input" id="clickY"
+               value="400" min="0" max="1080">
+
+        <div class="action-sep"></div>
+
+        <button class="action-btn" onclick="scrollAction('up')"
+                title="Défiler vers le haut">
+            ⬆️ Haut</button>
+        <button class="action-btn" onclick="scrollAction('down')"
+                title="Défiler vers le bas">
+            ⬇️ Bas</button>
+        <input type="number" class="action-input" id="scrollAmount"
+               value="300" min="0" max="5000"
+               title="Pixels à défiler">
+
+        <div class="action-sep"></div>
+
+        <button class="action-btn" onclick="typeAction()"
+                title="Taper du texte">⌨️ Taper</button>
+        <input type="text" class="config-input" id="typeText"
+               placeholder="Texte..."
+               style="width:150px;font-size:12px;padding:4px 8px;"
+               onkeydown="if(event.key==='Enter')typeAction()">
+        <button class="action-btn" onclick="keyAction('Enter')">
+            ↵</button>
+        <button class="action-btn" onclick="keyAction('Tab')">
+            ⇥</button>
+        <button class="action-btn" onclick="keyAction('Escape')">
+            Esc</button>
+    </div>
+
+    <!-- History -->
+    <div class="history-bar" id="historyBar">
+    </div>
+
+    <!-- Loading -->
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p class="loading-text" id="loadingText">Chargement...</p>
+    </div>
+
+    <!-- Result area -->
+    <div class="result-area" id="resultArea">
+        <div class="empty-state" id="emptyState">
+            <h2>Bienvenue sur Bisule</h2>
+            <p>
+                Entrez une URL ci-dessus et cliquez "Charger"
+                pour récupérer le code HTML ou une capture d'écran.
+                <br><br>
+                <b>Paramètres d'URL :</b><br>
+                <code>?url=google.com&m=image</code> — capture d'écran<br>
+                <code>?url=google.com&m=code</code> — code HTML<br>
+                <code>&c=640-400</code> — clic à x=640, y=400<br>
+                <code>&d=u25</code> — défiler haut de 25px<br>
+                <code>&d=d50</code> — défiler bas de 50px<br>
+                <br>
+                Configurez d'abord l'URL du serveur Colab ci-dessus.
+            </p>
+        </div>
+    </div>
+
+    <!-- Coord tooltip (for image click) -->
+    <div class="coord-tooltip" id="coordTooltip"></div>
+
+    <script>
+        // ═══════════════════════════════════════
+        // État
+        // ═══════════════════════════════════════
+        let serverUrl = localStorage.getItem('bisule_server') || '';
+        let isConnected = false;
+        let history = [];
+        let currentUrl = '';
+        let lastMode = 'image';
+
+        // Charger le serveur sauvegardé
+        document.getElementById('serverUrl').value = serverUrl;
+
+        // ═══════════════════════════════════════
+        // Lire les paramètres d'URL
+        // ═══════════════════════════════════════
+        function parseUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            const url = params.get('url');
+            const mode = params.get('m') || 'image';
+            const click = params.get('c');
+            const scroll = params.get('d');
+
+            if (url) {
+                document.getElementById('urlInput').value = url;
+                document.getElementById('modeSelect').value = mode;
+
+                // Attendre que le serveur soit configuré
+                if (serverUrl) {
+                    // Exécuter la requête
+                    executeRequest(url, mode, click, scroll);
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════
+        // Connexion serveur
+        // ═══════════════════════════════════════
+        function saveServer() {
+            serverUrl = document.getElementById('serverUrl')
+                        .value.trim().replace(/\/+$/, '');
+            localStorage.setItem('bisule_server', serverUrl);
+            document.getElementById('configStatus').textContent
+                = '✅ Sauvegardé !';
+            setTimeout(() => {
+                document.getElementById('configStatus').textContent = '';
+            }, 2000);
+            testConnection();
+        }
+
+        async function testConnection() {
+            serverUrl = document.getElementById('serverUrl')
+                        .value.trim().replace(/\/+$/, '');
+
+            if (!serverUrl) {
+                setStatus(false, 'URL serveur vide');
+                return;
+            }
+
+            document.getElementById('configStatus').textContent
+                = '⏳ Test...';
+
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(
+                    () => controller.abort(), 8000
+                );
+
+                const res = await fetch(serverUrl + '/status', {
+                    signal: controller.signal,
+                    headers: {
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
+                clearTimeout(timeoutId);
+
+                if (res.ok) {
+                    const data = await res.json();
+                    setStatus(true,
+                        'Connecté — ' + data.total_requests + ' req');
+                    document.getElementById('configStatus').textContent
+                        = '✅ Connecté !';
+                } else {
+                    setStatus(false, 'Erreur ' + res.status);
+                    document.getElementById('configStatus').textContent
+                        = '❌ Erreur';
+                }
+            } catch (e) {
+                setStatus(false, 'Injoignable');
+                document.getElementById('configStatus').textContent
+                    = '❌ Injoignable';
+            }
+        }
+
+        function setStatus(online, text) {
+            const badge = document.getElementById('statusBadge');
+            const label = document.getElementById('statusText');
+            isConnected = online;
+            badge.className = 'status ' + (online ? 'online' : 'offline');
+            label.textContent = text;
+        }
+
+        // ═══════════════════════════════════════
+        // Requête principale
+        // ═══════════════════════════════════════
+        function go() {
+            const url = document.getElementById('urlInput').value.trim();
+            const mode = document.getElementById('modeSelect').value;
+            if (!url) return;
+            executeRequest(url, mode, null, null);
+        }
+
+        async function executeRequest(url, mode, clickParam,
+                                       scrollParam) {
+            if (!serverUrl) {
+                showError('Configurez d\'abord l\'URL du serveur '
+                          + 'Colab ci-dessus.');
+                return;
+            }
+
+            // Normaliser l'URL
+            if (!url.startsWith('http')) {
+                url = 'https://' + url;
+            }
+
+            currentUrl = url;
+            lastMode = mode;
+
+            // Afficher le loading
+            showLoading('Chargement de ' + url + '...');
+
+            try {
+                // Étape 1 : charger la page
+                let apiUrl = serverUrl + '/browse?url='
+                             + encodeURIComponent(url)
+                             + '&mode=' + mode;
+
+                // Ajouter les paramètres optionnels
+                if (clickParam) {
+                    apiUrl += '&click=' + clickParam;
+                }
+                if (scrollParam) {
+                    apiUrl += '&scroll=' + scrollParam;
+                }
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(
+                    () => controller.abort(), 30000
+                );
+
+                const res = await fetch(apiUrl, {
+                    signal: controller.signal,
+                    headers: {
+                        'ngrok-skip-browser-warning': 'true'
+                    }
+                });
+                clearTimeout(timeoutId);
+
+                if (!res.ok) {
+                    const errData = await res.json().catch(
+                        () => ({error: 'Erreur ' + res.status})
+                    );
+                    showError(errData.error || 'Erreur serveur');
+                    return;
+                }
+
+                const data = await res.json();
+
+                if (!data.success) {
+                    showError(data.error || 'Échec de la requête');
+                    return;
+                }
+
+                // Afficher le résultat
+                if (mode === 'image') {
+                    showImage(data);
+                } else {
+                    showCode(data);
+                }
+
+                // Ajouter à l'historique
+                addHistory(url, mode);
+
+                // Mettre à jour le statut
+                setStatus(true, 'OK — ' + data.time_ms + 'ms');
+
+            } catch (e) {
+                if (e.name === 'AbortError') {
+                    showError('Timeout — la requête a pris trop '
+                              + 'de temps (>30s)');
+                } else {
+                    showError('Erreur réseau : ' + e.message);
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════
+        // Actions (clic, scroll, type, key)
+        // ═══════════════════════════════════════
+        async function clickAction() {
+            const x = document.getElementById('clickX').value;
+            const y = document.getElementById('clickY').value;
+            if (!currentUrl || !serverUrl) return;
+
+            showLoading('Clic à (' + x + ', ' + y + ')...');
+
+            try {
+                const res = await fetch(
+                    serverUrl + '/action', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify({
+                        action: 'click',
+                        x: parseInt(x),
+                        y: parseInt(y),
+                        mode: lastMode
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    if (lastMode === 'image') {
+                        showImage(data);
+                    } else {
+                        showCode(data);
+                    }
+                } else {
+                    showError(data.error);
+                }
+            } catch (e) {
+                showError('Erreur : ' + e.message);
+            }
+        }
+
+        async function scrollAction(direction) {
+            const amount = parseInt(
+                document.getElementById('scrollAmount').value
+            ) || 300;
+            if (!currentUrl || !serverUrl) return;
+
+            showLoading('Scroll ' + direction + ' ' + amount + 'px...');
+
+            try {
+                const res = await fetch(
+                    serverUrl + '/action', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify({
+                        action: 'scroll',
+                        direction: direction,
+                        amount: amount,
+                        mode: lastMode
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    if (lastMode === 'image') {
+                        showImage(data);
+                    } else {
+                        showCode(data);
+                    }
+                } else {
+                    showError(data.error);
+                }
+            } catch (e) {
+                showError('Erreur : ' + e.message);
+            }
+        }
+
+        async function typeAction() {
+            const text = document.getElementById('typeText').value;
+            if (!text || !serverUrl) return;
+
+            showLoading('Saisie : "' + text + '"...');
+            document.getElementById('typeText').value = '';
+
+            try {
+                const res = await fetch(
+                    serverUrl + '/action', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify({
+                        action: 'type',
+                        text: text,
+                        mode: lastMode
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    if (lastMode === 'image') {
+                        showImage(data);
+                    } else {
+                        showCode(data);
+                    }
+                } else {
+                    showError(data.error);
+                }
+            } catch (e) {
+                showError('Erreur : ' + e.message);
+            }
+        }
+
+        async function keyAction(key) {
+            if (!serverUrl) return;
+
+            showLoading('Touche : ' + key + '...');
+
+            try {
+                const res = await fetch(
+                    serverUrl + '/action', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true'
+                    },
+                    body: JSON.stringify({
+                        action: 'key',
+                        key: key,
+                        mode: lastMode
+                    })
+                });
+
+                const data = await res.json();
+                if (data.success) {
+                    if (lastMode === 'image') {
+                        showImage(data);
+                    } else {
+                        showCode(data);
+                    }
+                } else {
+                    showError(data.error);
+                }
+            } catch (e) {
+                showError('Erreur : ' + e.message);
+            }
+        }
+
+        // ═══════════════════════════════════════
+        // Affichage des résultats
+        // ═══════════════════════════════════════
+        function showLoading(text) {
+            document.getElementById('loading').className = 'loading active';
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('resultArea').innerHTML = '';
+            document.getElementById('goBtn').disabled = true;
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').className = 'loading';
+            document.getElementById('goBtn').disabled = false;
+        }
+
+        function showImage(data) {
+            hideLoading();
+            const area = document.getElementById('resultArea');
+
+            area.innerHTML = `
+                <div class="result-info">
+                    <span class="result-badge success">✅ OK</span>
+                    <span class="result-badge time">
+                        ⏱️ ${data.time_ms}ms</span>
+                    <span class="result-badge size">
+                        📐 ${data.image_size_bytes
+                             ? Math.round(data.image_size_bytes/1024)
+                               + ' Ko' : ''}</span>
+                    <span class="result-badge" style="background:#f3f4f6;
+                        color:#374151;">
+                        🌐 ${data.title || ''}</span>
+                </div>
+                <div class="result-image-container"
+                     id="imageContainer"
+                     onmousemove="showCoords(event)"
+                     onmouseleave="hideCoords()"
+                     onclick="imageClick(event)">
+                    <img class="result-image" id="resultImg"
+                         src="data:image/${data.image_format || 'png'}
+                              ;base64,${data.image_base64}"
+                         draggable="false">
+                </div>
+            `;
+        }
+
+        function showCode(data) {
+            hideLoading();
+            const area = document.getElementById('resultArea');
+
+            const escaped = (data.html || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+
+            area.innerHTML = `
+                <div class="result-info">
+                    <span class="result-badge success">✅ OK</span>
+                    <span class="result-badge time">
+                        ⏱️ ${data.time_ms}ms</span>
+                    <span class="result-badge size">
+                        📄 ${data.html_length
+                             ? data.html_length.toLocaleString()
+                               + ' chars' : ''}</span>
+                    <span class="result-badge" style="background:#f3f4f6;
+                        color:#374151;">
+                        🌐 ${data.title || ''}</span>
+                    <button class="action-btn"
+                            onclick="copyCode()">📋 Copier</button>
+                </div>
+                <pre class="result-code" id="codeContent"
+                >${escaped}</pre>
+            `;
+        }
+
+        function showError(message) {
+            hideLoading();
+            const area = document.getElementById('resultArea');
+            area.innerHTML = `
+                <div class="error-box">
+                    <strong>❌ Erreur</strong><br>
+                    ${message}
+                </div>
+            `;
+        }
+
+        // ═══════════════════════════════════════
+        // Image interactions
+        // ═══════════════════════════════════════
+        function getImageCoords(event) {
+            const img = document.getElementById('resultImg');
+            if (!img) return null;
+            const rect = img.getBoundingClientRect();
+            const scaleX = 1280 / rect.width;
+            const scaleY = 800 / rect.height;
+            return {
+                x: Math.round((event.clientX - rect.left) * scaleX),
+                y: Math.round((event.clientY - rect.top) * scaleY)
+            };
+        }
+
+        function showCoords(event) {
+            const coords = getImageCoords(event);
+            if (!coords) return;
+            const tooltip = document.getElementById('coordTooltip');
+            tooltip.textContent = coords.x + ', ' + coords.y;
+            tooltip.style.left = (event.pageX + 12) + 'px';
+            tooltip.style.top = (event.pageY - 24) + 'px';
+            tooltip.style.display = 'block';
+        }
+
+        function hideCoords() {
+            document.getElementById('coordTooltip').style.display
+                = 'none';
+        }
+
+        function imageClick(event) {
+            const coords = getImageCoords(event);
+            if (!coords) return;
+
+            // Mettre à jour les champs
+            document.getElementById('clickX').value = coords.x;
+            document.getElementById('clickY').value = coords.y;
+
+            // Afficher le point rouge
+            const container = document.getElementById('imageContainer');
+            const dot = document.createElement('div');
+            dot.className = 'click-dot';
+            const img = document.getElementById('resultImg');
+            const rect = img.getBoundingClientRect();
+            const containerRect = container.getBoundingClientRect();
+            dot.style.left = (event.clientX - containerRect.left) + 'px';
+            dot.style.top = (event.clientY - containerRect.top) + 'px';
+            container.appendChild(dot);
+            setTimeout(() => dot.remove(), 600);
+
+            // Envoyer le clic
+            clickAction();
+        }
+
+        // ═══════════════════════════════════════
+        // Utilitaires
+        // ═══════════════════════════════════════
+        function copyCode() {
+            const code = document.getElementById('codeContent');
+            if (code) {
+                navigator.clipboard.writeText(code.textContent)
+                    .then(() => {
+                        const btn = document.querySelector(
+                            '.result-info .action-btn'
+                        );
+                        if (btn) {
+                            btn.textContent = '✅ Copié !';
+                            setTimeout(
+                                () => btn.textContent = '📋 Copier',
+                                1500
+                            );
+                        }
+                    });
+            }
+        }
+
+        function addHistory(url, mode) {
+            const short = url.replace('https://', '')
+                             .replace('http://', '')
+                             .substring(0, 30);
+            history.unshift({ url, mode, short });
+            if (history.length > 10) history.pop();
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const bar = document.getElementById('historyBar');
+            bar.innerHTML = history.map(h =>
+                `<button class="history-item"
+                         onclick="document.getElementById('urlInput').value='${h.url}';document.getElementById('modeSelect').value='${h.mode}';go()">
+                    ${h.mode === 'image' ? '📸' : '📄'} ${h.short}
+                </button>`
+            ).join('');
+        }
+
+        // ═══════════════════════════════════════
+        // Init
+        // ═══════════════════════════════════════
+        if (serverUrl) {
+            testConnection();
+        }
+        parseUrlParams();
+    </script>
+</body>
+</html>
